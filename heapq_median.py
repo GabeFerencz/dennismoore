@@ -1,41 +1,21 @@
 import heapq
 
-def heap_view(tree):
-    '''A horizontal ascii tree of the first few tree levels.'''
+def heap_view(tree, max_level = 4):
+    '''A horizontal ascii tree of a specified maximum number of levels.'''
     # The 1-based depth is the bit length of the 1-based node's index
     depth = lambda n: (n+1).bit_length() - 1
-    # The in-order traversal order of the node indexes for levels 0-4
-    ordered_indexes = [                 15,
-                                    7,
-                                        16,
-                                3,
-                                        17,
-                                    8,
-                                        18,
-                            1,
-                                        19,
-                                    9,
-                                        20,
-                                4,
-                                        21,
-                                    10,
-                                        22,
-                        0,
-                                        23,
-                                    11,
-                                        24,
-                                5,
-                                        25,
-                                    12,
-                                        26,
-                            2,
-                                        27,
-                                    13,
-                                        28,
-                                6,
-                                        29,
-                                    14,
-                                        30]
+
+    # Generate the in-order traversal order of the node indexes for the
+    # specified number of levels
+    ordered_indexes = []
+    for level in range(max_level + 1):
+        min_index = (2**level)-1
+        level_indexes = range(min_index, 2*(min_index) + 1)
+        # Insert the node indexes for the next level on even array indexes
+        for (n, node_index) in enumerate(level_indexes):
+            ordered_indexes.insert(2*n, node_index)
+
+    # Start building the lines (one line per node)
     ret = []
     for n in ordered_indexes:
         try:
