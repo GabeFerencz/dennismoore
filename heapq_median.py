@@ -119,38 +119,60 @@ class MedianHeap(object):
 
         return median
 
-def test_shuffled_range(count):
+def _test_shuffled_range(count):
     import random
-    mh = MedianHeap()
     vals = range(count)
-    if len(vals) == 0:
+    if count == 0:
         exp = None
-    elif (len(vals) % 2):
-        exp = vals[len(vals)//2]
+    elif count%2:
+        exp = count//2
     else:
-        exp = (vals[len(vals)//2] + vals[(len(vals)//2)-1]) / 2.0
+        exp = (count//2 + (count//2)-1) / 2.0
     random.shuffle(vals)
-    for x in vals:
-        mh.update(x)
-    assert mh.median() == exp, 'exp: %f, got: %f'%(exp, mh.median())
+    return _test(vals)
+
+def _test(values, expected = None):
+
+    # Get the result from MedianHeap
+    start = time.time()
+    mh = MedianHeap()
+    map(mh.update, values)
+    result = mh.median()
+    elapsed = time.time() - start
+    
+    # If an expected result is not provided, get the result naively
+    if expected is None:
+        # Make sure the sort comes after we've updated the MedianHeap
+        values.sort()
+        if len(values) == 0:
+            exp = None
+        elif len(values)%2:
+            exp = values[len(values)//2]
+        else:
+            exp = (values[len(values)//2] + values[(len(values)//2)-1]) / 2.0
+    else:
+        exp = expected
+    # Ensure the median matches expectations
+    assert result == exp, 'exp: %f, got: %f'%(exp, result)
+    # Ensure that the high and low heaps do not differ in size by more than 1
     assert abs(len(mh.low) - len(mh.high)) <= 1, 'Corrupt MedianHeap!'
 
-def test(values, expected):
-    mh = MedianHeap()
-    for x in values:
-        mh.update(x)
-    values.sort()
-    if len(values) == 0:
-        exp = None
-    elif (len(values) % 2):
-        exp = values[len(values)//2]
-    else:
-        exp = (values[len(values)//2] + values[(len(values)//2)-1]) / 2.0
-    assert mh.median() == exp, 'exp: %f, got: %f'%(exp, mh.median())
-    assert abs(len(mh.low) - len(mh.high)) <= 1, 'Corrupt MedianHeap!'
-    
+    return elapsed
 
 if __name__ == "__main__":
-    map(test_shuffled_range, [0, 1, 3, 10, 30, 61])
-    test([-5000, 60, 25, 40000, 394875, -28634876, -20, -13, -23746], -13)
+    import time
+    import cProfile
+    
+    map(_test_shuffled_range, [0, 1, 3, 10, 30, 61])
+    _test([-5000, 60, 25, 40000, 394875, -28634876, -20, -13, -23746], -13)
+    _test(range(50000), 24999.5)
+    _test(range(49999), 24999)
     print 'Self test passed!'
+    
+    print 'Profiling...'
+    _test(range(100001), 50000)
+    _test(range(200001), 100000)
+    for x in [49999, 50000, 100000, 100001, 200000, 200001]:
+        print '%d values: %f seconds'%(x, _test_shuffled_range(x))
+    
+    cProfile.run('_test(range(200001), 100000)')
