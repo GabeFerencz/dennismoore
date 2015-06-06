@@ -71,8 +71,8 @@ class MaxHeap(Heap):
         # Don't forget the inverse of the negation we made on entry
         return -Heap.root(self)
 
-class MedianHeap(object):
-    '''A heap that maintains the median of streamed data in O(n log n).
+class MedianStruct(object):
+    '''A data structure that maintains the median in O(n log n).
     
     update() is O(1) typical, O(log n) worst case
     median(), min(), and max() are O(1)
@@ -87,7 +87,7 @@ class MedianHeap(object):
         self._max = None
 
     def update(self, value):
-        '''Add a new value, maintaining the heap invariant.'''
+        '''Add a new value, maintaining the min and max heaps.'''
         # Update the min and max
         if (value < self._min) or (self._min is None):
             self._min = value
@@ -111,7 +111,7 @@ class MedianHeap(object):
             self.low.push(self.high.pop())
 
     def median(self):
-        '''Median of the current dataset. Returns None on empty heap.'''
+        '''Median of the current dataset. Returns None on empty.'''
         # The median is the root of the larger heap
         if len(self.high) < len(self.low):
             median = self.low.root()
@@ -150,16 +150,16 @@ def _assert_equal(expected, result, name = ''):
     assert expected == result, error_string
 
 def _test(values, expected_median = None):
-    # Get the result from MedianHeap
+    # Get the result from MedianStruct
     start = time.time()
-    mh = MedianHeap()
+    mh = MedianStruct()
     map(mh.update, values)
     result = mh.median()
     elapsed = time.time() - start
     
     # If an expected result is not provided, get the result naively
     if expected_median is None:
-        # Make sure the sort comes after we've updated the MedianHeap
+        # Make sure the sort comes after we've updated the MedianStruct
         values.sort()
         if len(values) == 0:
             exp = None
@@ -180,7 +180,7 @@ def _test(values, expected_median = None):
     _assert_equal(exp_min, mh.min(), 'Min')
     _assert_equal(exp_max, mh.max(), 'Max')
     
-    assert abs(len(mh.low) - len(mh.high)) <= 1, 'Corrupt MedianHeap!'
+    assert abs(len(mh.low) - len(mh.high)) <= 1, 'Corrupt MedianStruct!'
 
     return elapsed
 
