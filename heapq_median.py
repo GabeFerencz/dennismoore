@@ -85,52 +85,53 @@ class MedianStruct(object):
         
         self._min = None
         self._max = None
+        self._median = None
 
     def update(self, value):
-        '''Add a new value, maintaining the min and max heaps.'''
+        '''Add a new value, maintaining the min and max heaps.
+        
+        Raises RuntimeError on update if the heap have invalid balance.'''
         # Update the min and max
         if (value < self._min) or (self._min is None):
             self._min = value
         if value > self._max:
             self._max = value
-        
-        # Get the current median
-        median = self.median()
 
-        # Push the value onto the appropriate heap (equal defaults to high)
-        if value < median:
-            self.low.push(value)
+        # Push the value onto the appropriate heap (equal defaults to high).
+        if value < self._median:
+            update_heap = self.low
+            static_heap = self.high
         else:
-            self.high.push(value)
+            update_heap = self.high
+            static_heap = self.low
 
-        # Keep the heaps balanced in size by popping the top value from the 
-        # larger heap and pushing it onto the smaller heap
-        if len(self.high) < len(self.low):
-            self.high.push(self.low.pop())
-        elif len(self.high) > len(self.low):
-            self.low.push(self.high.pop())
+        update_heap.push(value)
+        balance = len(update_heap) - len(static_heap)
+        if balance == 0:
+            # The push balanced the heaps, so average the roots
+            self._median = (static_heap.root() + update_heap.root()) / 2.0
+        elif balance == 1:
+            # The push was onto a balanced heap, so use the updated heap's root
+            self._median = update_heap.root()
+        elif balance == 2:
+            # The push was onto an already larger heap, so rebalance the heaps
+            static_heap.push(update_heap.pop())
+            # Since we just rebalanced, the median is the average of the roots
+            self._median = (static_heap.root() + update_heap.root()) / 2.0
+        else:
+            # We should never get here...
+            raise RuntimeError('Invalid heap balance')
 
     def median(self):
         '''Median of the current dataset. Returns None on empty.'''
-        # The median is the root of the larger heap
-        if len(self.high) < len(self.low):
-            median = self.low.root()
-        elif len(self.high) > len(self.low):
-            median = self.high.root()
-        # If the lists are the same length, the median is the average of
-        # the two middle elements
-        else:
-            try:
-                median = (self.low.root() + self.high.root()) / 2.0
-            except IndexError:
-                # There are no values in either heap (initial condition)
-                median = None
-        return median
+        return self._median
 
     def min(self):
+        '''Minimum of the current dataset. Returns None on empty.'''
         return self._min
 
     def max(self):
+        '''Maximum of the current dataset. Returns None on empty.'''
         return self._max
 
 def _test_shuffled_range(count):
