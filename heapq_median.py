@@ -72,19 +72,28 @@ class MaxHeap(Heap):
         return -Heap.root(self)
 
 class MedianHeap(object):
-    '''A heap that retrieves the median of streamed data in O(n log n).
+    '''A heap that maintains the median of streamed data in O(n log n).
     
     update() is O(1) typical, O(log n) worst case
-    median() is O(1)
+    median(), min(), and max() are O(1)
     '''
     def __init__(self):
         # Heap of values higher than the median
         self.high = MinHeap()
         # Heap of values lower than the median
         self.low = MaxHeap()
+        
+        self._min = None
+        self._max = None
 
     def update(self, value):
         '''Add a new value, maintaining the heap invariant.'''
+        # Update the min and max
+        if (value < self._min) or (self._min is None):
+            self._min = value
+        if value > self._max:
+            self._max = value
+        
         # Get the current median
         median = self.median()
 
@@ -116,8 +125,13 @@ class MedianHeap(object):
             except IndexError:
                 # There are no values in either heap (initial condition)
                 median = None
-
         return median
+
+    def min(self):
+        return self._min
+
+    def max(self):
+        return self._max
 
 def _test_shuffled_range(count):
     import random
@@ -131,8 +145,11 @@ def _test_shuffled_range(count):
     random.shuffle(vals)
     return _test(vals)
 
-def _test(values, expected = None):
+def _assert_equal(expected, result, name = ''):
+    error_string = name + 'Error exp: %s, got: %s'%(str(expected), str(result))
+    assert expected == result, error_string
 
+def _test(values, expected_median = None):
     # Get the result from MedianHeap
     start = time.time()
     mh = MedianHeap()
@@ -141,7 +158,7 @@ def _test(values, expected = None):
     elapsed = time.time() - start
     
     # If an expected result is not provided, get the result naively
-    if expected is None:
+    if expected_median is None:
         # Make sure the sort comes after we've updated the MedianHeap
         values.sort()
         if len(values) == 0:
@@ -151,10 +168,18 @@ def _test(values, expected = None):
         else:
             exp = (values[len(values)//2] + values[(len(values)//2)-1]) / 2.0
     else:
-        exp = expected
-    # Ensure the median matches expectations
-    assert result == exp, 'exp: %f, got: %f'%(exp, result)
-    # Ensure that the high and low heaps do not differ in size by more than 1
+        exp = expected_median
+    _assert_equal(exp, result, 'Median')
+
+    try:
+        exp_min = min(values)
+        exp_max = max(values)
+    except ValueError:
+        exp_min = None
+        exp_max = None
+    _assert_equal(exp_min, mh.min(), 'Min')
+    _assert_equal(exp_max, mh.max(), 'Max')
+    
     assert abs(len(mh.low) - len(mh.high)) <= 1, 'Corrupt MedianHeap!'
 
     return elapsed
