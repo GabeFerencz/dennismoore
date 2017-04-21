@@ -1,0 +1,37 @@
+encode_lut.c:
+
+Encodes bits of bytes from stdin using a lookup table in big endian,
+outputting binary to stdout.
+
+1 -> 0110
+0 -> 1001
+
+Compile:
+$ gcc encode_lut.c -o encode_lut
+
+Example:
+$ echo -n "hello world!" | ./encode_lut |  perl -lpe '$_=unpack"B*"'
+10010110011010010110100110011001100101100110100110010110100101101001
+01100110100101100110100110011001011001101001011001101001100110010110
+01101001011001100110011010011001011010011001100110011001100101100110
+01101001011001100110100101100110100101100110011001101001011001100110
+10011001011010011001011001101001011001101001100110010110011010011001
+01101001100110011001011010011001100110010110
+
+------------------------------------------------------------------------
+decode.c:
+
+Decodes the output of the above.
+
+Compile:
+$ gcc decode.c -o decode
+
+Example:
+$ echo "hello world!" | ./encode_lut | ./decode
+hello world!
+
+------------------------------------------------------------------------
+encode.py:
+
+Some prototyping for a C function to encode/decode data. Also used to
+generate the LUT for the C implementation of encode.
