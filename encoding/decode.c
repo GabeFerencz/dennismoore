@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <errno.h>
 #include <unistd.h>
 
 #define BUFFER_SIZE 256
@@ -70,21 +71,24 @@ int main(int argc, char* argv[]) {
 
 		// Ensure exactly 4 bytes were read or a byte cannot be decoded.
 		if (bytes_read != 4){
-			perror("Input read error");
+			errno = EIO;
+			perror("Input read");
 			return EXIT_FAILURE;
 		}
 
 		// Decode the byte
 		ret = decode(buffer, &byte_out);
 		if (ret == EXIT_FAILURE) {
-			perror("Invalid input error");
+			errno = EINVAL;
+			perror("Invalid input");
 			return EXIT_FAILURE;
 		}
 
 		// 1 output byte per 4 input bytes
 		bytes_written = write(STDOUT_FILENO, &byte_out, 1);
 		if (bytes_written != 1){
-			perror("Output write error");
+			errno = EIO;
+			perror("Output write");
 			return EXIT_FAILURE;
 		}
 	}

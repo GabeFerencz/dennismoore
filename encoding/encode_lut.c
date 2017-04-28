@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <errno.h>
 #include <unistd.h>
 
 #define BUFFER_SIZE 256
@@ -85,7 +86,8 @@ int main(int argc, char* argv[]) {
 			ret_out = write(STDOUT_FILENO, encode(buffer[i]), 4);
 			if (ret_out != 4){
 				// Write error
-				perror("Output write error");
+				errno = EIO;
+				perror("Output write");
 				return EXIT_FAILURE;
 			}
 		}
