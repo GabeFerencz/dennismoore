@@ -15,11 +15,3 @@ A heap sorting data structure written in Python.
 
 Bitwise encoding and decoding written in C for Linux. The accompanying
 Python code was used for prototyping and lookup table generation.
-
-## dirgrab
-
-A utility written in Python to grab all directories containing a search
-string. This was written because the log folders needed for debugging a
-product I work on are often buried a few levels deep in a directory 
-tree and I can never remember the few different places where the files
-reside.
